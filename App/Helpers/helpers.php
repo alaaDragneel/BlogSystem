@@ -7,11 +7,10 @@ if (!function_exists("dd")) {
     * @param mixed $var
     * @return void
     */
-   function dd($var)
-   {
-       echo "<pre>";
-       print_r($var);
-       echo "</pre>";
-       die;
-   }
+    function dd()
+    {
+        array_map(function($var) {
+            dump($var);
+        }, func_get_args());
+    }
 }
