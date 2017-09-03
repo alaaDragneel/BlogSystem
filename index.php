@@ -7,4 +7,5 @@ use System\Application;
 use System\File;
 
 $file = new File(__DIR__);
+
 $app = new Application($file);
