@@ -34,7 +34,7 @@ class File
     */
     public function exists($file)
     {
-        return file_exists($file);
+        return file_exists($this->to($file));
     }
 
     /**
@@ -45,29 +45,7 @@ class File
     */
     public function require($file)
     {
-        require $file;
-    }
-
-    /**
-    * Generate Full Path To The Given path in App Folder
-    *
-    * @param [string] $path
-    * @return string
-    */
-    public function toApp($path)
-    {
-        return $this->to($path);
-    }
-
-    /**
-    * Generate Full Path To The Given path in Vendor Folder
-    *
-    * @param [string] $path
-    * @return string
-    */
-    public function toVendor($path)
-    {
-        return $this->to('vendor' . static::DS . $path);
+        require $this->to($file);
     }
 
     /**

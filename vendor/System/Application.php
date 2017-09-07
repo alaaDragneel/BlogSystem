@@ -11,14 +11,36 @@ class Application
     private $container = [];
 
     /**
-    * [__construct]
-    * @param \System\File $file
+    * Application Object
+    * @var \System\Application
     */
-    public function __construct(File $file)
+    private static $instance;
+
+    /**
+    * [__construct]
+    */
+    private function __construct(File $file)
     {
         $this->share('file', $file);
+
         $this->registerClasses();
+
         $this->loadHelpers();
+    }
+
+    /**
+    * Get Application instance
+    *
+    * @param \System\File $file
+    * @return \System\Application
+    */
+    public static function getInstance($file = null)
+    {
+        if (is_null(static::$instance)) {
+            static::$instance = new static($file);
+        }
+
+        return static::$instance;
     }
 
     /**
@@ -31,6 +53,11 @@ class Application
         $this->session->start();
 
         $this->request->prepareUrl();
+
+        $this->file->require('App/index.php');
+
+        list($controller, $method, $arguments) = $this->route->getProperRoute();
+
     }
 
     /**
@@ -53,11 +80,11 @@ class Application
     {
         if (strpos($class, 'App') === 0) {
             // get The Class From app
-            $file = $this->file->toApp($class. '.php');
+            $file = $class. '.php';
 
         } else {
             // get The Class From vendor
-            $file = $this->file->toVendor($class. '.php');
+            $file =  'vendor/' . $class. '.php';
         }
 
         if ($this->file->exists($file)) {
@@ -72,7 +99,7 @@ class Application
     */
     public function loadHelpers()
     {
-        $this->file->require($this->file->toApp('App/Helpers/helpers.php'));
+        $this->file->require('App/Helpers/helpers.php');
     }
 
     /**
@@ -156,6 +183,7 @@ class Application
             'request'           => 'System\\Http\\Request',
             'response'          => 'System\\Http\\Response',
             'session'           => 'System\\Session',
+            'route'             => 'System\\Route',
             'cookie'            => 'System\\Cookie',
             'load'              => 'System\\Load',
             'Html'              => 'System\\Html',
