@@ -8,6 +8,11 @@ class UsersController extends Controller
 {
     public function index()
     {
-        dd($this->session->get('name'));
+        $this->response->setHeader('name', 'AlaaDragneel');
+        $user_name = 'Alaaragneel';
+        $user_last_login = date('Y-m-d h:i:s');
+
+        return $this->view->render('blog.home', compact('user_name', 'user_last_login'));
+
     }
 }

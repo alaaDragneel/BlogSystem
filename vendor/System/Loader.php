@@ -47,7 +47,6 @@ class Loader
     public function action($controller, $method, $arguments)
     {
         $object = $this->controller($controller);
-
         return call_user_func_array([$object, $method], $arguments);
     }
 

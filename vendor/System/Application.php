@@ -54,11 +54,17 @@ class Application
 
         $this->request->prepareUrl();
 
-        $this->file->call('App/index.php');
+        $this->file->call('App/routes.php');
 
         list($controller, $method, $arguments) = $this->route->getProperRoute();
 
-        $this->load->action($controller, $method, $arguments);
+        // (string) => convert the output object to string this usually Get Error
+        // But We Use "[ __toString() ]" Magic Method in the \System\View\View
+        $output = (string) $this->load->action($controller, $method, $arguments);
+
+
+        $this->response->setOutput($output);
+        $this->response->send();
     }
 
     /**
