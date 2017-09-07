@@ -16,7 +16,7 @@ class Route
     *
     * @var array
     */
-    private $routes;
+    private $routes = [];
 
     /**
     * Not Fount Url
@@ -43,7 +43,7 @@ class Route
     * @param string $requestMethod
     * @return void
     */
-   public function add($url, $action, $requestMethod = 'GET')
+   private function add($url, $action, $requestMethod = 'GET')
    {
        $route = [
            'url'        => $url,
@@ -53,6 +53,30 @@ class Route
        ];
 
         $this->routes[] = $route;
+   }
+    /**
+    * Add Get Route
+    *
+    * @param string $url
+    * @param string $action
+    * @param string $requestMethod
+    * @return void
+    */
+   public function get($url, $action)
+   {
+       $this->add($url, $action, 'GET');
+   }
+    /**
+    * Add New Post Route
+    *
+    * @param string $url
+    * @param string $action
+    * @param string $requestMethod
+    * @return void
+    */
+   public function post($url, $action)
+   {
+       $this->add($url, $action, 'POST');
    }
 
    /**
