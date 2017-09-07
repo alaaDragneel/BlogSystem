@@ -10,4 +10,4 @@ $file = new File(__DIR__);
 
 $app = new Application($file);
 
-dd($app);
+$app->run();

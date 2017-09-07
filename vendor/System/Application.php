@@ -22,6 +22,18 @@ class Application
     }
 
     /**
+    * Run The Application
+    *
+    * @return void
+    */
+    public function run()
+    {
+        $this->session->start();
+
+        $this->request->prepareUrl();
+    }
+
+    /**
     * Register Classes in  spl auto load register
     *
     * @return void
@@ -71,7 +83,26 @@ class Application
     */
     public function get($key)
     {
-        return isset($this->container[$key]) ? $this->container[$key] : null;
+        if (! $this->isSharing($key)) {
+            if ($this->isCoreAlias($key)) {
+                $this->share($key, $this->createNewCoreObject($key));
+            } else {
+                die('<b>'. $key .'</b> Not Found In Application Container');
+            }
+        }
+
+        return $this->container[$key];
+    }
+
+    /**
+    * Detremaine If The Given Key Is Shared To Apllication
+    *
+    * @param string $Key
+    * @return boolean
+    */
+    public function isSharing($key)
+    {
+        return isset($this->container[$key]);
     }
 
     /**
@@ -87,12 +118,59 @@ class Application
     }
 
     /**
+    * Determine If The Given Key Is An Aliase To Core Class
+    *
+    * @param string $alias
+    * @return boolean
+    */
+    private function isCoreAlias($alias)
+    {
+        $coreClasses = $this->coreClasses();
+
+        return isset($coreClasses[$alias]);
+    }
+
+    /**
+    * Create new Object for the core class based on the given alias
+    *
+    * @param string $alias
+    * @return boolean
+    */
+    private function createNewCoreObject($alias)
+    {
+        $coreClasses = $this->coreClasses();
+
+        $object = $coreClasses[$alias];
+
+        return new $object($this);
+    }
+
+    /**
+    * Get All Core Classes With Its Aliases
+    *
+    * @return array
+    */
+    private function coreClasses()
+    {
+        return [
+            'request'           => 'System\\Http\\Request',
+            'response'          => 'System\\Http\\Response',
+            'session'           => 'System\\Session',
+            'cookie'            => 'System\\Cookie',
+            'load'              => 'System\\Load',
+            'Html'              => 'System\\Html',
+            'db'                => 'System\\Database',
+            'view'              => 'System\\View\\ViewFactory',
+        ];
+    }
+
+
+    /**
     * Get Shared value Dynamiclly
     *
     * @param string $Key
     * @return mixed
     */
-
     public function __get($key)
     {
         return $this->get($key);
