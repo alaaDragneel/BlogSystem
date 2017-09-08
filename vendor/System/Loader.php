@@ -123,41 +123,60 @@ class Loader
      */
     public function model($model)
     {
-        //
+        $model = $this->getModelName($model);
+        if (! $this->hasModel($model)) {
+            $this->addModel($model);
+        }
+
+        return $this->getModel($model);
     }
 
     /**
      * Determine if the given class|model exists
-     * in the Modles container
+     * in the Models container
      *
      * @param string $model
      * @return boolean
      */
     private function hasModel($model)
     {
-        //
+        return array_key_exists($model, $this->models);
     }
 
     /**
-     * Create new Object From The Given Modle and stor it
-     * in the Modles container
+     * Create new Object From The Given model and stor it
+     * in the Models container
      *
-     * @param string Modle
+     * @param string $model
      * @return void
      */
     private function addModel($model)
     {
-        //
+        $object = new $model($this->app);
+
+        $this->models[$model] = $object;
     }
 
     /**
-     * Get The Modle Object
+     * Get The Model Object
      *
      * @param string $model
      * @return object
      */
     private function getModel($model)
     {
-        //
+        return $this->models[$model];
+    }
+
+    /**
+     * Get The Full Class|Model
+     *
+     * @param string $model
+     * @return string
+     */
+    private function getModelName($model)
+    {
+        $model = 'App\\Models\\' . $model;
+        return str_replace('/', '\\', $model);
     }
 }
