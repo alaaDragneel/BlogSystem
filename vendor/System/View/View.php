@@ -79,6 +79,7 @@ class View implements ViewInterface
             // stop the output to render in the browser
             ob_start();
 
+            // extract all the array keys to be an variables
             extract($this->data);
 
             require $this->viewPath; // require the view

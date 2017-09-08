@@ -41,11 +41,11 @@ class File
     * Require The Given File
     *
     * @param [string] $file
-    * @return void
+    * @return mixed
     */
     public function call($file)
     {
-        require $this->to($file);
+        return require $this->to($file);
     }
 
     /**
