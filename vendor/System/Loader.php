@@ -5,30 +5,44 @@ namespace System;
 class Loader
 {
     /**
-    * Application object
-    *
-    * @var \System\Application
-    */
+     * Application Object
+     *
+     * @var \System\Application
+     */
     private $app;
 
     /**
-    * Controllers Container
-    *
-    * @var array
-    */
+     * Controllers Container
+     *
+     * @var array
+     */
     private $controllers = [];
 
     /**
-    * Models Container
-    *
-    * @var array
-    */
+     * Models Container
+     *
+     * @var array
+     */
     private $models = [];
 
     /**
-    * Constructor
-    * @param \System\Application $app
-    */
+     * Controller Name Space
+     *
+     * @var string
+     */
+    private static $controllerNamespace = 'App\\Controllers\\';
+
+    /**
+     * Models Name Space
+     *
+     * @var string
+     */
+    private static $modelsNamespace = 'App\\Models\\';
+
+    /**
+     * Constructor
+     * @param \System\Application $app
+     */
 
     public function __construct(Application $app)
     {
@@ -36,13 +50,13 @@ class Loader
     }
 
     /**
-     * Call The Given Controller With The GIven method
-     * and pass the given aguments to the Container method
+     * Call The Given Controller With The Given Method
+     * and Pass The Given Arguments To The Container Method
      *
      * @param string $controller
      * @param string $method
      * @param array $arguments
-     * @return mixed
+     * @return object
      */
     public function action($controller, $method, $arguments)
     {
@@ -62,7 +76,7 @@ class Loader
         if (! $this->hasController($controller)) {
             $this->addController($controller);
         }
-
+        
         return $this->getController($controller);
     }
 
@@ -79,17 +93,15 @@ class Loader
     }
 
     /**
-     * Create new Object From The Given controller and stor it
-     * in the Controllers container
+     * Create new Object From The Given Controller and Store It
+     * In The Controllers Container
      *
      * @param string $controller
      * @return void
      */
     private function addController($controller)
     {
-        $object = new $controller($this->app);
-
-        $this->controllers[$controller] = $object;
+        $this->controllers[$controller] = new $controller($this->app);
     }
 
     /**
@@ -111,7 +123,7 @@ class Loader
      */
     private function getControllerName($controller)
     {
-        $controller = 'App\\Controllers\\' . $controller;
+        $controller = static::$controllerNamespace . $controller;
         return str_replace('/', '\\', $controller);
     }
 
@@ -124,7 +136,7 @@ class Loader
     public function model($model)
     {
         $model = $this->getModelName($model);
-        if (! $this->hasModel($model)) {
+        if (!$this->hasModel($model)) {
             $this->addModel($model);
         }
 
@@ -176,7 +188,7 @@ class Loader
      */
     private function getModelName($model)
     {
-        $model = 'App\\Models\\' . $model;
+        $model = static::$modelsNamespace . $model;
         return str_replace('/', '\\', $model);
     }
 }

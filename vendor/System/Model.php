@@ -5,30 +5,30 @@ namespace System;
 abstract class Model
 {
     /**
-    * Application object
-    *
-    * @var \System\Application
-    */
+     * Application object
+     *
+     * @var \System\Application
+     */
     protected $app;
 
     /**
      * Table name
      *
-     * @var sttring
+     * @var string
      */
     protected $table;
 
     /**
-    * Constructor
-    * @param \System\Application $app
-    */
+     * Constructor
+     * @param \System\Application $app
+     */
     public function __construct(Application $app)
     {
         $this->app = $app;
     }
 
     /**
-     * Call shared Application Objects Dynamiclly
+     * Call shared Application Objects Dynamically
      *
      * @param string $key
      * @return mixed
@@ -39,33 +39,33 @@ abstract class Model
     }
 
     /**
-     * Call Database Methods Dynamiclly
+     * Call Database Methods Dynamically
      *
      * @param string $method
-     * @param array $arrguments
+     * @param array $arguments
      * @return mixed
      */
-    public function __call($method, $arrguments)
+    public function __call($method, $arguments)
     {
-        return call_user_func_array([$this->app->db, $method], $arrguments);
+        return call_user_func_array([$this->app->db, $method], $arguments);
     }
 
     /**
-    * Get All data
-    *
-    * @return array
-    */
+     * Get All data
+     *
+     * @return array
+     */
     public function all()
     {
         return $this->get($this->table);
     }
 
     /**
-    * Get data By Id
-    *
-    * @param int $id
-    * @return \stdClass|null
-    */
+     * Get data By Id
+     *
+     * @param int $id
+     * @return \stdClass|null
+     */
     public function find($id)
     {
         return $this->where('id = ?', $id)->first($this->table);

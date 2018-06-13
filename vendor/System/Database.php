@@ -7,39 +7,40 @@ use PDOException;
 
 class Database
 {
+
     /**
-    * Application object
-    *
-    * @var \System\Application
-    */
+     * Application object
+     *
+     * @var \System\Application
+     */
     private $app;
 
     /**
-    * PDO Connection
-    *
-    * @var \PDO
-    */
+     * PDO Connection
+     *
+     * @var \PDO
+     */
     private static $connection;
 
     /**
-    * Table Name
-    *
-    * @var string
-    */
+     * Table Name
+     *
+     * @var string
+     */
     private $table;
 
     /**
-    * Data Container
-    *
-    * @var array
-    */
+     * Data Container
+     *
+     * @var array
+     */
     private $data = [];
 
     /**
-    * Bindings Container
-    *
-    * @var array
-    */
+     * Bindings Container
+     *
+     * @var array
+     */
     private $bindings = [];
 
     /**
@@ -75,14 +76,14 @@ class Database
     *
     * @var int
     */
-    private $limit;
+    private $limit = 0;
 
     /**
     * Offset
     *
     * @var int
     */
-    private $offset;
+    private $offset = 0;
 
     /**
     * Total Rows
@@ -99,71 +100,69 @@ class Database
     private $orderBy = [];
 
     /**
-    * Constructor
-    * @param \System\Application $app
-    */
+     * Constructor
+     * @param \System\Application $app
+     */
     public function __construct(Application $app)
     {
         $this->app = $app;
 
-        if (! $this->isConnected()) {
+        if (!$this->isConnected()) {
             $this->connect();
         }
     }
 
     /**
-    * Determiane If There is Any connectio to Database
-    *
-    * @return boolean
-    */
+     * Determine If There Is Any Connection To Database
+     *
+     * @return boolean
+     */
     private function isConnected()
     {
-        // Check if the  "[ static::$connection ]" is instanceof PDO Class Or Not
         return static::$connection instanceof PDO;
     }
 
     /**
-    * Connect to Database
-    *
-    * @return void
-    */
+     * Connect to Database
+     *
+     * @return void
+     */
     private function connect()
     {
-        $connectionData = $this->app->file->call('config.php');
-        // extract all the array keys to be an variables
+        $connectionData = $this->app->file->call($this->app->file->toBasePath('config'));
+
         extract($connectionData);
 
         try {
-            static::$connection = new PDO($driver . ':host=' . $server . ';dbname=' . $db_name, $db_user_name, $db_user_password);
+            static::$connection = new PDO("{$driver}:host={$server};dbname={$db_name}", $db_user_name, $db_user_password);
 
             static::$connection->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ);
 
             static::$connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-            static::$connection->exec('SET NAMES utf8');
+            static::$connection->exec('SET NAMES utf8mb4');
 
         } catch (PDOException $e) {
             die($e->getMessage());
         }
-
     }
 
     /**
-    * Get Database Connection Object PDO Object
-    *
-    * @return \PDO
-    */
+     * Get Database Connection Object PDO Object
+     *
+     * @return \PDO
+     */
     public function connection()
     {
         return static::$connection;
     }
 
     /**
-    * Set select clause
-    *
-    * @param string $select
-    * @return $this
-    */
+     * Set select clause
+     *
+     * @param string $select
+     * @return $this
+     */
     public function select($select)
     {
         $this->selects[] = $select;
@@ -172,11 +171,11 @@ class Database
     }
 
     /**
-    * Join clause
-    *
-    * @param string $join
-    * @return $this
-    */
+     * Join clause
+     *
+     * @param string $join
+     * @return $this
+     */
     public function join($join)
     {
         $this->joins[] = $join;
@@ -185,13 +184,13 @@ class Database
     }
 
     /**
-    * orderBy clause
-    *
-    * @param string $column
-    * @param string $sort
-    * @return $this
-    */
-    public function orderBy($column, $sort = 'ASC')
+     * orderBy clause
+     *
+     * @param string $column
+     * @param string $sort
+     * @return $this
+     */
+    public function orderBy($column, $sort = ' ASC ')
     {
         $this->orderBy = [$column, $sort];
 
@@ -199,24 +198,52 @@ class Database
     }
 
     /**
-    * Set Limit clause
-    *
-    * @param int $limit
-    * @return $this
-    */
-    public function limit($limit)
+     * orderBy ASC clause
+     *
+     * @param string $column
+     * @return $this
+     */
+    public function oldest($column = 'id')
     {
-        $this->limit = $limit;
+        $this->orderBy = [$column, 'ASC'];
 
         return $this;
     }
 
     /**
-    * Set Offset clause
-    *
-    * @param int $offset
-    * @return $this
-    */
+     * orderBy DESC clause
+     *
+     * @param string $column
+     * @return $this
+     */
+    public function latest($column = 'id')
+    {
+        $this->orderBy = [$column, 'DESC'];
+
+        return $this;
+    }
+
+    /**
+     * Set Limit clause
+     *
+     * @param int $limit
+     * @return $this
+     */
+    public function limit($limit, $offset = 0)
+    {
+        $this->limit = $limit;
+
+        $this->offset = $offset;
+
+        return $this;
+    }
+
+    /**
+     * Set Offset clause
+     *
+     * @param int $offset
+     * @return $this
+     */
     public function offset($offset = 0)
     {
         $this->offset = $offset;
@@ -225,18 +252,17 @@ class Database
     }
 
     /**
-    * Fetch Table
-    * Thus Will return Only One Record
-    *
-    * @param string $table
-    * @return \stdClass|null
-    */
-    public function first($table = null)
+     * Fetch Table
+     * Thus Will return Only One Record
+     *
+     * @param string $table
+     * @return \stdClass|null
+     */
+    public function fetch($table = null)
     {
         if ($table) {
             $this->table = $table;
         }
-
 
         $result = $this->setFetchStyle()->fetch();
 
@@ -246,11 +272,23 @@ class Database
     }
 
     /**
-    * Fetch All Records From The Table
-    *
-    * @param string $table
-    * @return Array
-    */
+     * Fetch Table
+     * Thus Will return Only One Record
+     *
+     * @param string $table
+     * @return \stdClass|null
+     */
+    public function first($table = null)
+    {
+        return $this->fetch($table);
+    }
+
+    /**
+     * Fetch All Records From The Table
+     *
+     * @param string $table
+     * @return array
+     */
     public function get($table = null)
     {
         if ($table) {
@@ -269,41 +307,41 @@ class Database
     }
 
     /**
-    * Get Total Rows From Last FEtch All Stetment
-    *
-    * @return int
-    */
-   public function rowsCount()
-   {
+     * Get Total Rows From Last Fetch All Statement
+     *
+     * @return int
+     */
+    public function rowsCount()
+    {
        return $this->rows;
-   }
+    }
 
     /**
-    * Set Fetch and Fetch All style
-    *
-    * @param string $table
-    * @return Array
-    */
+     * Set Fetch and Fetch All style
+     *
+     * @param string $table
+     * @return Array
+     */
     private function setFetchStyle()
     {
-        $sql = $this->fetchStatments();
+        $sql = $this->fetchStatements();
 
         return $this->query($sql, $this->bindings);
     }
 
     /**
-    * Delete Clause
-    *
-    * @param $table
-    * @return $this
-    */
+     * Delete Clause
+     *
+     * @param $table
+     * @return $this
+     */
     public function delete($table = null)
     {
         if ($table) {
             $this->table = $table;
         }
 
-        $sql = 'DELETE FROM ' . $this->table . ' ';
+        $sql = "DELETE FROM {$this->table}" ;
 
         $sql .= $this->setFields();
 
@@ -317,21 +355,21 @@ class Database
 
 
     /**
-    * Prepare Select Statement
-    *
-    * @return string
-    */
-    private function fetchStatments()
+     * Prepare Select Statement
+     *
+     * @return string
+     */
+    private function fetchStatements()
     {
-        $sql = 'SELECT ';
+        $sql = ' SELECT ';
 
         if ($this->selects) {
-            $sql .= implode(', ', $this->selects);
+            $sql .= implode(' , ', $this->selects);
         } else {
-            $sql .= '*';
+            $sql .= ' * ';
         }
 
-        $sql .= ' FROM ' . $this->table . ' ';
+        $sql .= " FROM {$this->table} ";
 
 
         if ($this->joins) {
@@ -354,18 +392,16 @@ class Database
             $sql .= ' OFFSET ' . $this->offset ;
         }
 
-
-
         return $sql;
     }
 
 
     /**
-    * Set The Table Name
-    *
-    * @param string $table
-    * @return $this
-    */
+     * Set The Table Name
+     *
+     * @param string $table
+     * @return $this
+     */
     public function table($table)
     {
         $this->table = $table;
@@ -374,47 +410,65 @@ class Database
     }
 
     /**
-    * Set The Table Name
-    *
-    * @param string $table
-    * @return $this
-    */
+     * Set The Table Name
+     *
+     * @param string $table
+     * @return $this
+     */
     public function from($table)
     {
         return $this->table($table);
     }
 
     /**
-    * Set The Data That Will Be Stored in Database Table
-    *
-    * @param mixed $key
-    * @param mixed $value
-    * @return $this
-    */
+     * Set The Data That Will Be Stored in Database Table
+     *
+     * @param mixed $key
+     * @param mixed $value
+     * @return $this
+     */
     public function data($key, $value = null)
     {
         if (is_array($key)) {
             $this->data = array_merge($this->data, $key);
-            $this->addToBindings($key);
+            // here we pass an key array of associative array but addToBindings work with indexed array to we add array_values 
+            // to get only the values
+            $this->addToBindings($key); 
         } else {
             $this->data[$key] = $value;
+            $this->addToBindings($value); 
         }
+
         return $this;
     }
 
     /**
-    * Insert Data To Database
-    *
-    * @param $table
-    * @return $this
-    */
+     * Set The Data That Will Be Stored in Database Table
+     *
+     * @param mixed $key
+     * @param mixed $value
+     * @return $this
+     */
+    public function fill($key, $value = null)
+    {
+        $this->data($key, $value);
+
+        return $this;
+    }
+
+    /**
+     * Insert Data To Database
+     *
+     * @param $table
+     * @return $this
+     */
     public function insert($table = null)
     {
         if ($table) {
-            $this->table = $table;
+            $this->table($table);
         }
 
-        $sql = 'INSERT INTO ' . $this->table . ' SET ';
+        $sql = "INSERT INTO {$this->table} SET ";
 
         $sql .= $this->setFields();
 
@@ -428,77 +482,113 @@ class Database
     }
 
     /**
-    * Update Data in Database
-    *
-    * @param $table
-    * @return $this
-    */
-    public function update($table = null)
+     * Set And Insert The Data That Will Be Stored in Database Table
+     *
+     * @param mixed $key
+     * @param mixed $value
+     * @return $this
+     */
+    public function create($key, $value = null)
+    {
+        $this->data($key, $value);
+        $this->insert();
+
+        return $this;
+    }
+
+    /**
+     * Set And Insert The Data That Will Be Stored in Database Table
+     *
+     * @param mixed $key
+     * @param mixed $value
+     * @return $this
+     */
+    public function save($key, $value = null)
+    {
+        $this->create($key, $value);
+
+        return $this;
+    }
+
+
+    /**
+     * Update Data in Database
+     *
+     * @param $table
+     * @return $this
+     */
+    public function update($table = null, array $data = [])
     {
         if ($table) {
-            $this->table = $table;
+            $this->table($table);
         }
 
-        $sql = 'UPDATE ' . $this->table . ' SET ';
+        if (count($data) > 0) {
+            $this->data($data);
+        }
+
+        $sql = "UPDATE {$this->table} SET";
 
         $sql .= $this->setFields();
-
+        
         $this->query($sql, $this->bindings);
-
+        
         $this->resetAll();
 
         return $this;
     }
 
     /**
-    * Set Fields For Insert And UPDATE
-    *
-    * @return string
-    */
+     * Set Fields For Insert And UPDATE
+     *
+     * @return string
+     */
     private function setFields()
     {
-        $sql = '';
+        $sql = " ";
 
         foreach (array_keys($this->data) as $key) {
-            $sql .= '`' . $key . '` = ? , ';
+            $sql .= " `{$key}` = ? , ";
         }
 
         // remove the last "[ Comma ]"
-        $sql = rtrim($sql, ', ');
-
+        $sql = rtrim($sql, ' , ');
+        
         if ($this->wheres) {
             foreach ($this->wheres as $key => $value) {
                 if ($key == 0) {
-                    $sql .= ' WHERE ' . $value;
+                    $sql .= " WHERE {$value} ";
                 } else {
-                    $sql .= ' AND ' . $value;
+                    $sql .= " AND {$value} ";
                 }
             }
         }
+
         return $sql;
     }
 
     /**
-    * Add New Where Clause
-    *
-    * @return $this
-    */
+     * Add New Where Clause
+     *
+     * @return $this
+     */
     public function where(...$bindings)
     {
         $sql = array_shift($bindings);
 
         $this->addToBindings($bindings);
 
+        // $this->wheres[] = "{$sql} = ? ";
         $this->wheres[] = $sql;
+
         return $this;
     }
 
     /**
-    * Excute the Given Sql Statement
-    *
-    * NOTE "[ ...$bindings ]" === $bindings = func_get_args();
-    * @return \PDOStatement
-    */
+     * Execute the Given Sql Statement
+     *
+     * @return \PDOStatement
+     */
     public function query(...$bindings)
     {
         $sql = array_shift($bindings);
@@ -508,8 +598,8 @@ class Database
         }
 
         try {
-            //   $query = $this->connection()->prepare($sql);
-            $query = static::$connection->prepare($sql);
+            
+            $query = $this->connection()->prepare($sql);
 
             foreach ($bindings as $key => $value) {
                 $query->bindValue($key + 1, __e($value));
@@ -518,6 +608,7 @@ class Database
             $query->execute();
 
         } catch (PDOException $e) {
+            dd($sql, $this->bindings);
             die($e->getMessage());
         }
 
@@ -526,25 +617,26 @@ class Database
     }
 
     /**
-    * Get Last Insert Id
-    *
-    * @return int
-    */
+     * Get Last Insert Id
+     *
+     * @return int
+     */
     public function lastId()
     {
         return $this->lastId;
     }
 
     /**
-    * Add Given Value To Bindings
-    *
-    * @param mixed $value
-    * @return void
-    */
+     * Add Given Value To Bindings
+     *
+     * @param mixed $value
+     * @return void
+     */
     private function addToBindings($value)
     {
-        // use array_values becuse the PDO::bindValue Work With indexed array not associtive
         if (is_array($value)) {
+            // merge the old bindings with the new values to not overwrite the old bindings with the new bindings
+            // addToBindings work with integer to we add array_values 
             $this->bindings = array_merge($this->bindings, array_values($value));
         } else {
             $this->bindings[] = $value;
@@ -552,14 +644,15 @@ class Database
     }
 
     /**
-    * Reset All Data
-    *
-    * @return void
-    */
-   private function resetAll() {
+     * Reset All Data
+     *
+     * @return void
+     */
+    private function resetAll()
+    {
         $this->rows         = 0;
-        $this->limit        = null;
-        $this->offset       = null;
+        $this->limit        = 0;
+        $this->offset       = 0;
         $this->table        = null;
         $this->bindings     = [];
         $this->data         = [];
@@ -567,5 +660,6 @@ class Database
         $this->joins        = [];
         $this->wheres       = [];
         $this->orderBy      = [];
-   }
+    }
+
 }

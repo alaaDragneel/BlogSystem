@@ -2,96 +2,113 @@
 
 namespace System\View;
 
-use System\File;
+use System\FileSystem;
+
 
 class View implements ViewInterface
 {
     /**
-    * File object
-    *
-    * @var \System\File
-    */
+     * File Object
+     *
+     * @var \System\File
+     */
     private $file;
 
     /**
-    * View Path
-    *
-    * @var string
-    */
+     * View Path
+     * 
+     * @var string
+     */
     private $viewPath;
 
     /**
-    * Passed data "[ Variables ]" To The View Path
-    *
-    * @var array
-    */
+     * Passed Data [ "Variables" ] To the View Path
+     * 
+     * @var array
+     */
     private $data = [];
 
     /**
-    * the Output From the View File
-    *
-    * @var string
-    */
+     * The Output From The View File
+     * 
+     * @var string
+     */
     private $output;
 
     /**
-    * Constructor
-    * @param \System\File $file
-    */
-    public function __construct(File $file, $viewPath , array $data)
+     * View Directory Path
+     *
+     * @var string
+     */
+    private static $viewDirectoryPath = 'resources\\views\\';
+
+    /**
+     * Constructor
+     *
+     * @param \System\FileSystem $file
+     * @param string $viewPath
+     * @param array $data
+     * @return void
+     */
+    public function __construct(FileSystem $file, $viewPath, array $data)
     {
         $this->file = $file;
+
         $this->preparePath($viewPath);
+
         $this->data = $data;
     }
 
     /**
-    * Prepare View Path
-    *
-    * @param string $viewPath
-    * @return void
-    */
+     * Prepare View Path
+     *
+     * @param string $viewPath
+     * @return void
+     */
     private function preparePath($viewPath)
     {
-        $relativeViewPath = 'resources/views/' . $viewPath . '.php';
-        $this->viewPath = $this->file->to($relativeViewPath);
-        if (! $this->viewFileExists($relativeViewPath)) {
-            die('<b>' . $viewPath . ' View </b>'. ' Doesn\'t Exists In Views Folder');
+        $this->viewPath = $this->file->toBasePath(static::$viewDirectoryPath . $viewPath);
+
+        if (!$this->viewFileExists()) {
+            die('<b>' . $this->viewPath . ' View </b>' . ' Doesn\'t Exists In Views Folder');
         }
     }
 
     /**
-    * Determin if View
-    *
-    * @return boolean
-    */
-    private function viewFileExists($viewPath) {
-
-        return $this->file->exists($viewPath);
+     * Determine If The View File Exists
+     *
+     * @return void
+     */
+    private function viewFileExists()
+    {
+        return $this->file->exists($this->viewPath);
     }
 
     /**
-    * @inheritDoc
-    */
+     * {@inheritDoc}
+     */
     public function getOutput()
     {
         if (is_null($this->output)) {
-            // stop the output to render in the browser
+            // stop sending the output to render in the browser and store it in buffer
             ob_start();
 
             // extract all the array keys to be an variables
             extract($this->data);
 
-            require $this->viewPath; // require the view
+            // require the view
+            require $this->viewPath;
 
-            $this->output = ob_get_clean(); // get the view and store it
+            // Get The Output Form The Buffer, Then Clean It From The Buffer and store it
+            $this->output = ob_get_clean();
         }
+
         return $this->output;
     }
 
     /**
-    * @inheritDoc
-    */
+     * {@inheritDoc}
+     */
     public function __toString()
     {
         return $this->getOutput();

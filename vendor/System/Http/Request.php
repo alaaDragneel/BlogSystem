@@ -4,102 +4,102 @@ namespace System\Http;
 
 class Request
 {
-    /**
-    * Url
-    *
-    * @var string
-    */
-    private $url;
-
-    /**
-    * Base Url
-    *
-    * @var string
-    */
-    private $baseUrl;
-
-    /**
-    * Prepare Url
-    *
-    * @return void
-    */
-   public function prepareUrl()
-   {
-       $requestUri = $this->server('REQUEST_URI');
-
-       if (strpos($requestUri, '?') !== false) {
-           list($requestUri, $queryString) = explode('?', $requestUri);
-       }
-
-       $this->url = $requestUri;
-
-       $this->baseUrl = $this->server('REQUEST_SCHEME') . '://' . $this->server('HTTP_HOST') . $requestUri;
-   }
-
-   /**
-   * Get Value From _GET by The Given Key
+  /**
+   * Url
    *
-   * @param string $key
+   * @var string
+   */
+  private $url;
+
+  /**
+   * Base Url
+   *
+   * @var string
+   */
+  private $baseUrl;
+
+  /**
+   * Prepare Url
+   *
+   * @return void
+   */
+  public function prepareUrl()
+  {
+    $script = strtolower(dirname($this->server('SCRIPT_NAME')));
+
+    $requestUri = $this->server('REQUEST_URI');
+
+    if (strpos($requestUri, '?') !== false) {
+      [$requestUri, $queryString] = explode('?', $requestUri);
+    }
+
+    $this->url = preg_replace("#^{$script}#", '', $requestUri);
+    $this->baseUrl = $this->server('REQUEST_SCHEME') . '://' . $this->server('HTTP_HOST') . $script . '/';
+  }
+
+  /**
+   * Get Value From $_GET By The Given Key
+   *
+   * @param sting $key
    * @param mixed $default
    * @return mixed
    */
-   public function get($key, $default = null)
-   {
-       return array_get($_GET, $key, $default);
-   }
+  public function get($key, $default = null)
+  {
+    return array_get($_GET, $key, $default);
+  }
 
-   /**
-   * Get Value From _POST by The Given Key
+  /**
+   * Get Value From $_POST By The Given Key
    *
-   * @param string $key
+   * @param sting $key
    * @param mixed $default
    * @return mixed
    */
-   public function post($key, $default = null)
-   {
-       return array_get($_POST, $key, $default);
-   }
+  public function post($key, $default = null)
+  {
+    return array_get($_POST, $key, $default);
+  }
 
-   /**
-   * Get Value From _SERVER by The Given Key
+  /**
+   * Get Value From $_SERVER By The Given Key
    *
-   * @param string $key
+   * @param sting $key
    * @param mixed $default
    * @return mixed
    */
-   public function server($key, $default = null)
-   {
-       return array_get($_SERVER, $key, $default);
-   }
+  public function server($key, $default = null)
+  {
+    return array_get($_SERVER, $key, $default);
+  }
 
-   /**
-   * Get Current Request Method
+  /**
+   * Get Current Request method
    *
-   * @return strng
+   * @return string
    */
-   public function method()
-   {
-       return $this->server('REQUEST_METHOD');
-   }
+  public function method()
+  {
+    return $this->server('REQUEST_METHOD');    
+  }
 
-   /**
-   * Get Full Url
-   *
-   * @return strng
+  /**
+   * Get Full Url 
+   * 
+   * @return string
    */
-   public function baseUrl()
-   {
-       return $this->baseUrl;
-   }
+  public function baseUrl()
+  {
+    return $this->baseUrl; 
+  }
 
-   /**
-   * Get Only relative url (clear url)
-   *
-   * @return strng
+  /**
+   * Get Only Relative Url (Clean Url)
+   * 
+   * @return string
    */
-   public function url()
-   {
-       return $this->url;
-   }
-
+  public function url()
+  {
+    return $this->url; 
+  }
 }
